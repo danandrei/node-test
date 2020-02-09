@@ -52,9 +52,7 @@ app.use((req, res, next) => {
   res.status(404).json({ error: 'Not found' });
 });
 
-/**
- * Error-handler.
- */
+// Error-handler.
 app.use((err, req, res, _next) => {
   if (err.name === 'UnauthorizedError') {
     return res.status(401).json({ status: 401, message: err.message });
