@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const ServerError = require('../lib/server_error');
 const { User } = require('../models');
 
 function createAccessTokens(user) {
@@ -11,19 +12,22 @@ function createAccessTokens(user) {
         expiresIn: '1h',
       }
     ),
-    refreshToken: jwt.sign(
-      { id: user.id, email: user.email },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: '1w',
-      }
-    ),
   };
 }
 
-async function signup(_, { name, email, password }) {
+async function signup({ email, password, repeatPassword }) {
+  if (!email || !repeatPassword || !password) {
+    throw new ServerError(
+      'Email, password and repeatPassword are required',
+      400
+    );
+  }
+
+  if (password !== repeatPassword) {
+    throw new ServerError('passwords do not match', 400);
+  }
+
   const user = await User.create({
-    name,
     email,
     password: await bcrypt.hash(password, 10),
   });
@@ -31,28 +35,17 @@ async function signup(_, { name, email, password }) {
   return createAccessTokens(user);
 }
 
-async function login(_, { email, password }) {
+async function signin({ email = '', password = '' }) {
   const user = await User.findOne({ where: { email } });
 
   if (!user) {
-    throw new Error('Invalid email or password');
+    throw new ServerError('Invalid email or password', 400);
   }
 
   const valid = await bcrypt.compare(password, user.password);
 
   if (!valid) {
-    throw new Error('Incorrect password');
-  }
-
-  return createAccessTokens(user);
-}
-
-async function refresh(_, { refreshToken }) {
-  const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
-  const user = await User.findOne({ where: { id: decoded.id } });
-
-  if (!user) {
-    throw new Error('Invalid token');
+    throw new ServerError('Incorrect password', 400);
   }
 
   return createAccessTokens(user);
@@ -60,6 +53,5 @@ async function refresh(_, { refreshToken }) {
 
 module.exports = {
   signup,
-  login,
-  refresh,
+  signin,
 };
