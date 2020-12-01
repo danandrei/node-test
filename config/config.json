@@ -6,5 +6,13 @@
     "host": "127.0.0.1",
     "dialect": "postgres",
     "operatorsAliases": false
+  },
+  "production": {
+    "username": "rpvucqpnsaoaqx",
+    "password": "c54308e16073673bda64d169991d67511482f16c962f5163b24b6b8239ac7478",
+    "database": "d2ri5fuirvtajo",
+    "host": "ec2-54-228-250-82.eu-west-1.compute.amazonaws.com",
+    "dialect": "postgres",
+    "operatorsAliases": false
   }
 }
